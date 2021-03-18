@@ -1,0 +1,103 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
+AWSTemplateFormatVersion: 2010-09-09
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:            
+      - Label:
+          default: Instance Configuration Details
+        Parameters:
+            - LinuxAmi
+      - Label:
+          default: Required Parameters
+        Parameters:
+            - env
+    ParameterLabels:
+      LinuxAmi:
+        default: Amazon Machine Image for Applicaton Instances
+      env:
+        default: SDLC Environment of this VPC
+
+Parameters:
+  LinuxAmi:
+    Type : 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+  env:
+    Type: String
+    Description: SDLC Environment
+    AllowedValues:
+      - Dev
+      - Test
+      - Prod
+  onPremPrefixList:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: SSM Parameter Store key for Prefix-List
+    AllowedValues:
+      - Dev-OnPrem-PrefixList
+      - Test-OnPrem-PrefixList
+      - Prod-OnPrem-PrefixList
+  vpc:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: SSM Parameter Store key for VPC ID
+    AllowedValues:
+      - Dev-Vpc
+      - Test-Vpc
+      - Prod-Vpc
+  subnet:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: SSM Parameter Store key for VPC ID
+    AllowedValues:
+      - Dev-PrivateSubnet1
+      - Test-PrivateSubnet1
+      - Prod-PrivateSubnet1
+  
+Resources:
+  AppServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref LinuxAmi
+      SubnetId: !Ref subnet
+      InstanceType: t3.small
+      Tags:
+        - Key: Name
+          Value: !Sub "AppServer1-${env}"
+      SecurityGroupIds:
+        - !Ref AppSecurityGroup
+      IamInstanceProfile: !Ref AppInstanceProfile
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeType: gp2
+            DeleteOnTermination: true
+            VolumeSize: 40
+  AppSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: SSH Access from on-premises
+      VpcId: !Ref vpc
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        SourcePrefixListId: !Ref onPremPrefixList
+  AppInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Path: /
+      Roles:
+        - !Ref AppAccessRole
+  AppAccessRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /

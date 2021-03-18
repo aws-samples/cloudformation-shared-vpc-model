@@ -1,0 +1,20 @@
+StackName: 'shared-vpc' 
+Parameters: 
+- ParameterKey: 'vpcAccountIds'
+  ParameterValue: '' # String of 1 or more comma separated AWS account id ex. '0123456789012,1123456789012'
+- ParameterKey: 'publicTierAccountIds'
+  ParameterValue: '' # String of 1 or more comma separated AWS account id ex. '0123456789012,1123456789012'
+- ParameterKey: 'privateTierAccountIds'
+  ParameterValue: '' # String of 1 or more comma separated AWS account id ex. '0123456789012,1123456789012'
+- ParameterKey: 'dbTierAccountIds'
+  ParameterValue: '' # String of 1 or more comma separated AWS account id ex. '0123456789012,1123456789012'
+- ParameterKey: 'vpcCIDR'
+  ParameterValue: '' # String in CIDR format ex. '10.100.0.0/16'
+- ParameterKey: 'orgArn'
+  ParameterValue: '' # ARN of your AWS Organization
+- ParameterKey: 'env'
+  ParameterValue: '' # Environment for this VPC.  Choose from Dev, Test, or Prod
+Capabilities:
+- CAPABILITY_AUTO_EXPAND
+- CAPABILITY_NAMED_IAM
+- CAPABILITY_IAM

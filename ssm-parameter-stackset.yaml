@@ -1,0 +1,33 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: 'Template for StacKSet to create SSM Parameter Store entries in target accounts'
+Parameters:
+  Key:
+    Type: String
+    Description: The name of the parameter
+  Description:
+    Type: String
+    Description: Information about the parameter
+  Value:
+    Type: String
+    Description: The parameter value
+  Type:
+    Type: String
+    Description: The type of parameter
+  Env:
+    Type: String
+    Description: The value to use in the Environment Tag
+
+Resources:
+  NetworkParameter:
+    Type: AWS::SSM::Parameter
+    Properties: 
+      DataType: text
+      Description: !Ref Description
+      Name: !Ref Key
+      Tags: 
+        Environment: !Ref Env
+      Type: !Ref Type
+      Value: !Ref Value
