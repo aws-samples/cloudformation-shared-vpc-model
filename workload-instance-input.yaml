@@ -1,11 +1,5 @@
 StackName: 'workload-instance' 
 Parameters: 
-- ParameterKey: 'onPremPrefixList'
-  ParameterValue: 'Dev-OnPrem-PrefixList' # Name of the SSM Parameter
-- ParameterKey: 'vpc'
-  ParameterValue: 'Dev-Vpc' # String of 1 or more comma separated AWS account id ex. '0123456789012,1123456789012'
-- ParameterKey: 'subnet'
-  ParameterValue: 'Dev-PrivateSubnet1' # String of 1 or more comma separated AWS account id ex. '0123456789012,1123456789012'
 - ParameterKey: 'env'
   ParameterValue: 'Dev' # Environment for this VPC.  Choose from Dev, Test, or Prod
 Capabilities:

@@ -74,7 +74,7 @@ Resources:
       Entries:
         - Cidr: "10.100.1.0/24" # This value can be moved to a parameter for reusability 
           Description: "Charlotte Office"
-        - Cidr: "10.100.2.0/32"
+        - Cidr: "10.100.2.0/26"
           Description: "Seattle Office"
       Tags:
         - Key: "Name"
@@ -277,7 +277,7 @@ Resources:
           MaxConcurrentCount: 2
       Parameters: 
         - ParameterKey: Key
-          ParameterValue: !Sub '${env}-Vpc'
+          ParameterValue: !Sub '/Network/${env}/Vpc'
         - ParameterKey: Description
           ParameterValue: !Sub '${env} VPC'
         - ParameterKey: Value
@@ -292,7 +292,7 @@ Resources:
             Accounts: !Split [ "," , !Ref vpcAccountIds ]
           Regions:
             - !Ref 'AWS::Region'
-      StackSetName: VpcIdParameter
+      StackSetName: !Sub '${env}-VpcIdParameter'
       Tags: 
         - Key: Environment
           Value: !Ref env
@@ -308,7 +308,7 @@ Resources:
           MaxConcurrentCount: 2
       Parameters: 
         - ParameterKey: Key
-          ParameterValue: !Sub '${env}-PublicSubnet1'
+          ParameterValue: !Sub '/Network/${env}/PublicSubnet1'
         - ParameterKey: Description
           ParameterValue: !Sub 'Public Subnet 1 ID in ${env} VPC'
         - ParameterKey: Value
@@ -323,7 +323,7 @@ Resources:
             Accounts: !Split [ "," , !Ref publicTierAccountIds ]
           Regions:
             - !Ref 'AWS::Region'
-      StackSetName: PublicSubnet1IdParameter
+      StackSetName: !Sub '${env}-PublicSubnet1IdParameter'
       Tags: 
         - Key: Environment
           Value: !Ref env
@@ -340,7 +340,7 @@ Resources:
           MaxConcurrentCount: 2
       Parameters: 
         - ParameterKey: Key
-          ParameterValue: !Sub '${env}-PublicSubnet2'
+          ParameterValue: !Sub '/Network/${env}/PublicSubnet2'
         - ParameterKey: Description
           ParameterValue: !Sub 'Public Subnet 2 ID in ${env} VPC'
         - ParameterKey: Value
@@ -355,7 +355,7 @@ Resources:
             Accounts: !Split [ "," , !Ref publicTierAccountIds ]
           Regions:
             - !Ref 'AWS::Region'
-      StackSetName: PublicSubnet2IdParameter
+      StackSetName: !Sub '${env}-PublicSubnet2IdParameter'
       Tags: 
         - Key: Environment
           Value: !Ref env
@@ -372,7 +372,7 @@ Resources:
           MaxConcurrentCount: 2
       Parameters: 
         - ParameterKey: Key
-          ParameterValue: !Sub '${env}-PrivateSubnet1'
+          ParameterValue: !Sub '/Network/${env}/PrivateSubnet1'
         - ParameterKey: Description
           ParameterValue: !Sub 'Private Subnet 1 ID in ${env} VPC'
         - ParameterKey: Value
@@ -387,7 +387,7 @@ Resources:
             Accounts: !Split [ "," , !Ref privateTierAccountIds ]
           Regions:
             - !Ref 'AWS::Region'
-      StackSetName: PrivateSubnet1IdParameter
+      StackSetName: !Sub '${env}-PrivateSubnet1IdParameter'
       Tags: 
         - Key: Environment
           Value: !Ref env
@@ -404,7 +404,7 @@ Resources:
           MaxConcurrentCount: 2
       Parameters: 
         - ParameterKey: Key
-          ParameterValue: !Sub '${env}-PrivateSubnet2'
+          ParameterValue: !Sub '/Network/${env}/PrivateSubnet2'
         - ParameterKey: Description
           ParameterValue: !Sub 'Private Subnet 2 ID in ${env} VPC'
         - ParameterKey: Value
@@ -419,7 +419,7 @@ Resources:
             Accounts: !Split [ "," , !Ref privateTierAccountIds ]
           Regions:
             - !Ref 'AWS::Region'
-      StackSetName: PrivateSubnet2IdParameter
+      StackSetName: !Sub '${env}-PrivateSubnet2IdParameter'
       Tags: 
         - Key: Environment
           Value: !Ref env
@@ -436,7 +436,7 @@ Resources:
           MaxConcurrentCount: 2
       Parameters: 
         - ParameterKey: Key
-          ParameterValue: !Sub '${env}-DbSubnet1'
+          ParameterValue: !Sub '/Network/${env}/DbSubnet1'
         - ParameterKey: Description
           ParameterValue: !Sub 'DB Subnet 1 ID in ${env} VPC'
         - ParameterKey: Value
@@ -451,7 +451,7 @@ Resources:
             Accounts: !Split [ "," , !Ref dbTierAccountIds ]
           Regions:
             - !Ref 'AWS::Region'
-      StackSetName: DbSubnet1IdParameter
+      StackSetName: !Sub '${env}-DbSubnet1IdParameter'
       Tags: 
         - Key: Environment
           Value: !Ref env
@@ -468,7 +468,7 @@ Resources:
           MaxConcurrentCount: 2
       Parameters: 
         - ParameterKey: Key
-          ParameterValue: !Sub '${env}-DbSubnet2'
+          ParameterValue: !Sub '/Network/${env}/DbSubnet2'
         - ParameterKey: Description
           ParameterValue: !Sub 'DB Subnet 2 ID in ${env} VPC'
         - ParameterKey: Value
@@ -483,7 +483,7 @@ Resources:
             Accounts: !Split [ "," , !Ref dbTierAccountIds ]
           Regions:
             - !Ref 'AWS::Region'
-      StackSetName: DbSubnet2IdParameter
+      StackSetName: !Sub '${env}-DbSubnet2IdParameter'
       Tags: 
         - Key: Environment
           Value: !Ref env
@@ -500,7 +500,7 @@ Resources:
           MaxConcurrentCount: 2
       Parameters: 
         - ParameterKey: Key
-          ParameterValue: !Sub '${env}-OnPrem-PrefixList'
+          ParameterValue: !Sub '/Network/${env}/OnPrem-PrefixList'
         - ParameterKey: Description
           ParameterValue: 'Prefix List ID for on-premises networks'
         - ParameterKey: Value
@@ -515,7 +515,7 @@ Resources:
             Accounts: !Split [ "," , !Ref vpcAccountIds ]
           Regions:
             - !Ref 'AWS::Region'
-      StackSetName: OnPremPrefixListIdParameter
+      StackSetName: !Sub '${env}-OnPremPrefixListIdParameter'
       Tags: 
         - Key: Environment
           Value: !Ref env

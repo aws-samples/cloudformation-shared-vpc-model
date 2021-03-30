@@ -13,13 +13,14 @@
 ## Deployment Steps
 ### Setup the roles for cross-account access
 1. Upload the [network-role-stackset.yaml](../blobs/mainline/--/network-role-stackset.yaml) to the S3 bucket identified in the prerequisites.
-2. From the AWS Organizations manangement account, create an AWS CloudFormation stack set using the *network-role-stackset.yaml*. Replace the S3 bucket domain and account IDs with values from your environment.
+2. From the AWS Organizations manangement account, create an AWS CloudFormation stack set using the *network-role-stackset.yaml*. Deploy the StackSet using the CLI commands below. Replace the S3 bucket domain, account IDs, organization ID, region ID with values from your environment.
 ```
-aws cloudformation create-stack-set --stack-set-name network-parameter-role /
---parameters ParameterKey=networkAccountId,ParameterValue=network-account-id /
+aws cloudformation create-stack-set --stack-set-name network-parameter-role \
+--parameters ParameterKey=networkAccountId,ParameterValue=network-account-id \
+ParameterValue=ParameterKey=organizationId,ParameterValue=organization-id \
 --template-url https://your-s3-bucket-domain/network-role-stackset.yaml
-aws cloudformation create-stack-instances --stack-set-name network-parameter-role /
---accounts network-account-id workload-account1-id workload-account2-id
+aws cloudformation create-stack-instances --stack-set-name network-parameter-role \
+--accounts network-account-id workload-account1-id workload-account2-id --regions region-id
 ```
 
 ### Deploy a Shared VPC from the Network Account
@@ -28,8 +29,8 @@ aws cloudformation create-stack-instances --stack-set-name network-parameter-rol
 3.	Edit the [shared-vpc-input.yaml](../blobs/mainline/--/shared-vpc-input.yaml) and provide the parameter values specific to your AWS Organization.
 4.	From the Network account, create the stack using the CLI command below.
 ```
-aws cloudformation create-stack --stack-name shared-vpc /
---template-url https://your-s3-bucket-domain/shared-vpc.yaml /
+aws cloudformation create-stack --stack-name shared-vpc \
+--template-url https://your-s3-bucket-domain/shared-vpc.yaml \
 --cli-input-yaml file://shared-vpc-input.yaml
 ```
 
@@ -38,8 +39,8 @@ aws cloudformation create-stack --stack-name shared-vpc /
 2.	Edit the [workload-instance-input.yaml](../blobs/mainline/--/workload-instance-input.yaml) and provide the parameter values specific to your application account.
 3.	From a Workload account, create the stack using the CLI command below.
 ```
-aws cloudformation create-stack --stack-name workload-instance /
---template-url https://your-s3-bucket-domain/workload-instance.yaml /
+aws cloudformation create-stack --stack-name workload-instance \
+--template-url https://your-s3-bucket-domain/workload-instance.yaml \
 --cli-input-yaml file://workload-instance-input.yaml
 ```
 
@@ -57,11 +58,11 @@ Once complete, switch your CLI profile to the network account and use the follow
 ```
 aws cloudformation delete-stack --stack-name shared-vpc
 ```
-Once complete, switch your CLI profile to the Organization's management account and use the following commands to delete the resources deployed to this account.  Update the account id values to match those used during your initial deployment.
+Once complete, switch your CLI profile to the Organization's management account and use the following commands to delete the resources deployed to this account.  Update the account ID and region ID values to match those used during your initial deployment.
 ```
-aws cloudformation delete-stack-instances --stack-set-name network-parameter-role /
---accounts network-account-id app-account1-id app-account2-id /
---no-retain-stacks
+aws cloudformation delete-stack-instances --stack-set-name network-parameter-role \
+--accounts network-account-id app-account1-id app-account2-id \
+--regions region-id --no-retain-stacks
 aws cloudformation delete-stack-set --stack-set-name network-parameter-role
 
 ```
