@@ -1,7 +1,7 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 
-AWSTemplateFormatVersion: 2010-09-09
+AWSTemplateFormatVersion: '2010-09-09'
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -31,13 +31,34 @@ Parameters:
       - Dev
       - Test
       - Prod
+  onPremPrefixList:
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Description: SSM Parameter Store key for Prefix-List
+    AllowedValues:
+      - /Network/Dev/OnPrem-PrefixList
+      - /Network/Test/OnPrem-PrefixList
+      - /Network/Prod/OnPrem-PrefixList
+  vpc:
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Description: SSM Parameter Store key for VPC ID
+    AllowedValues:
+      - /Network/Dev/Vpc
+      - /Network/Test/Vpc
+      - /Network/Prod/Vpc
+  subnet:
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Description: SSM Parameter Store key for VPC ID
+    AllowedValues:
+      - /Network/Dev/PrivateSubnet1
+      - /Network/Test/PrivateSubnet1
+      - /Network/Prod/PrivateSubnet1
   
 Resources:
   AppServer:
-    Type: AWS::EC2::Instance
+    Type: 'AWS::EC2::Instance'
     Properties:
       ImageId: !Ref LinuxAmi
-      SubnetId: !Sub '{{resolve:ssm:/Network/${env}/PrivateSubnet1:1}}'
+      SubnetId: !Ref subnet
       InstanceType: t3.small
       Tags:
         - Key: Name
@@ -55,9 +76,9 @@ Resources:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
       GroupDescription: SSH Access from on-premises
-      VpcId: !Sub '{{resolve:ssm:/Network/${env}/Vpc:1}}'
+      VpcId: !Ref vpc
       SecurityGroupIngress:
       - IpProtocol: tcp
         FromPort: 22
         ToPort: 22
-        SourcePrefixListId: !Sub '{{resolve:ssm:/Network/${env}/OnPrem-PrefixList:1}}'
+        SourcePrefixListId: !Ref onPremPrefixList

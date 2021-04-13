@@ -1,6 +1,0 @@
-StackName: 'workload-instance' 
-Parameters: 
-- ParameterKey: 'env'
-  ParameterValue: 'Dev' # Environment for this VPC.  Choose from Dev, Test, or Prod
-Capabilities:
-- CAPABILITY_IAM

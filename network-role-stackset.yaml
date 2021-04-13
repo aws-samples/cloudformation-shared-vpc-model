@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT-0
 
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Template for StacKSet to create cross account role accessible by Network VPC account'
+Description: 'Template for StackSet to create cross account role accessible by Network VPC account'
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -22,9 +22,11 @@ Parameters:
   networkAccountId:
     Type: String
     Description: Account ID of the shared network resources
+    AllowedPattern: '^\d{12}$'
   organizationId:
     Type: String
     Description: Organization ID beginning with o-
+    AllowedPattern: '^o-[a-z0-9]{10,32}'
 
 Conditions:
   IsNetworkAccount: !Equals [!Ref networkAccountId, !Ref AWS::AccountId] 
@@ -33,7 +35,7 @@ Conditions:
 Resources:
 ## ToDo set to only deploy once when deploying multi region
   NetworkParameterExecutionRole:
-    Type: AWS::IAM::Role
+    Type: 'AWS::IAM::Role'
     Condition: NotNetworkAccount
     Properties:
       RoleName: NetworkParameterExecutionRole
@@ -58,6 +60,7 @@ Resources:
                   - cloudformation:CreateStack
                   - cloudformation:DescribeStacks
                   - cloudformation:DeleteStack
+                  - cloudformation:UpdateStack
                 Resource: 'arn:aws:cloudformation:*:*:stack/StackSet-*'
               - Effect: Allow
                 Action:
@@ -78,7 +81,7 @@ Resources:
     Properties:
       RoleName: NetworkParameterAdminRole
       AssumeRolePolicyDocument:
-        Version: 2012-10-17
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
