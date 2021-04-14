@@ -1,6 +1,7 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
-AWSTemplateFormatVersion: 2010-09-09
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Template for building a sample VPC with subnets and a prefix list shared to member accounts in an AWS Organization. 
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -16,6 +17,7 @@ Metadata:
       - Label:
           default: Required Parameters
         Parameters:
+            - s3Bucket
             - orgArn
             - env
     ParameterLabels:
@@ -29,12 +31,17 @@ Metadata:
         default: Accounts with Private Subnet Access
       dbTierAccountIds:
         default: Accounts with Database Subnet Access
+      s3Bucket:
+        default: S3 template bucket
       orgArn:
         default: Amazon Resource Number (ARN) for the AWS Organization
       env:
         default: SDLC Environment of this VPC
 
 Parameters:
+  s3Bucket:
+    Type: String
+    Description: S3 bucket holding template files
   vpcAccountIds:
     Type: String
     Description: Comma delimited list of Account ID requiring shared VPC access
@@ -54,6 +61,7 @@ Parameters:
   orgArn:
     Type: String
     Description: AWS Organization ARN
+    AllowedPattern: '^arn:aws:organizations::\d{12}:organization\/o-[a-z0-9]{10,32}'
   env:
     Type: String
     Description: SDLC Environment
@@ -74,7 +82,7 @@ Resources:
       Entries:
         - Cidr: "10.100.1.0/24" # This value can be moved to a parameter for reusability 
           Description: "Charlotte Office"
-        - Cidr: "10.100.2.0/32"
+        - Cidr: "10.100.2.0/26"
           Description: "Seattle Office"
       Tags:
         - Key: "Name"
@@ -141,7 +149,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Select [ 2, !Cidr [ !Ref vpcCIDR, 6, 4 ]]
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       AvailabilityZone: !Select 
         - 0
         - !GetAZs 
@@ -159,7 +167,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Select [ 3, !Cidr [ !Ref vpcCIDR, 6, 4 ]]
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       AvailabilityZone: !Select 
         - 1
         - !GetAZs 
@@ -177,7 +185,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Select [ 4, !Cidr [ !Ref vpcCIDR, 6, 4 ]]
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       AvailabilityZone: !Select 
         - 0
         - !GetAZs 
@@ -195,7 +203,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Select [ 5, !Cidr [ !Ref vpcCIDR, 6, 4 ]]
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       AvailabilityZone: !Select 
         - 1
         - !GetAZs 
@@ -208,6 +216,36 @@ Resources:
               - 'db-subnet2'
         - Key: Environment
           Value: !Ref env
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+  InternetGatewayAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties: 
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+  PublicRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: PublicRouteTable
+      VpcId: !Ref VPC
+  PublicRoute:
+    Type: 'AWS::EC2::Route'
+    Properties: 
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref PublicRouteTable
+  PublicSubnet1RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties: 
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+  PublicSubnet2RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties: 
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
 
   # Share resources to target accounts
   PublicSubnetsShare:
@@ -277,7 +315,7 @@ Resources:
           MaxConcurrentCount: 2
       Parameters: 
         - ParameterKey: Key
-          ParameterValue: !Sub '${env}-Vpc'
+          ParameterValue: !Sub '/Network/${env}/Vpc'
         - ParameterKey: Description
           ParameterValue: !Sub '${env} VPC'
         - ParameterKey: Value
@@ -292,11 +330,11 @@ Resources:
             Accounts: !Split [ "," , !Ref vpcAccountIds ]
           Regions:
             - !Ref 'AWS::Region'
-      StackSetName: VpcIdParameter
+      StackSetName: !Sub '${env}-VpcIdParameter'
       Tags: 
         - Key: Environment
           Value: !Ref env
-      TemplateURL: https://your-s3-bucket-domain/ssm-parameter-stackset.yaml
+      TemplateURL: !Sub https://${s3Bucket}.s3.amazonaws.com/ssm-parameter-stackset.yaml
   PublicSubnet1Id:
     Type: AWS::CloudFormation::StackSet
     Properties: 
@@ -308,7 +346,7 @@ Resources:
           MaxConcurrentCount: 2
       Parameters: 
         - ParameterKey: Key
-          ParameterValue: !Sub '${env}-PublicSubnet1'
+          ParameterValue: !Sub '/Network/${env}/PublicSubnet1'
         - ParameterKey: Description
           ParameterValue: !Sub 'Public Subnet 1 ID in ${env} VPC'
         - ParameterKey: Value
@@ -323,11 +361,11 @@ Resources:
             Accounts: !Split [ "," , !Ref publicTierAccountIds ]
           Regions:
             - !Ref 'AWS::Region'
-      StackSetName: PublicSubnet1IdParameter
+      StackSetName: !Sub '${env}-PublicSubnet1IdParameter'
       Tags: 
         - Key: Environment
           Value: !Ref env
-      TemplateURL: https://your-s3-bucket-domain/ssm-parameter-stackset.yaml
+      TemplateURL: !Sub https://${s3Bucket}.s3.amazonaws.com/ssm-parameter-stackset.yaml
   PublicSubnet2Id:
     Type: AWS::CloudFormation::StackSet
     DependsOn: VPC
@@ -340,7 +378,7 @@ Resources:
           MaxConcurrentCount: 2
       Parameters: 
         - ParameterKey: Key
-          ParameterValue: !Sub '${env}-PublicSubnet2'
+          ParameterValue: !Sub '/Network/${env}/PublicSubnet2'
         - ParameterKey: Description
           ParameterValue: !Sub 'Public Subnet 2 ID in ${env} VPC'
         - ParameterKey: Value
@@ -355,11 +393,11 @@ Resources:
             Accounts: !Split [ "," , !Ref publicTierAccountIds ]
           Regions:
             - !Ref 'AWS::Region'
-      StackSetName: PublicSubnet2IdParameter
+      StackSetName: !Sub '${env}-PublicSubnet2IdParameter'
       Tags: 
         - Key: Environment
           Value: !Ref env
-      TemplateURL: https://your-s3-bucket-domain/ssm-parameter-stackset.yaml
+      TemplateURL: !Sub https://${s3Bucket}.s3.amazonaws.com/ssm-parameter-stackset.yaml
   PrivateSubnet1Id:
     Type: AWS::CloudFormation::StackSet
     DependsOn: VPC
@@ -372,7 +410,7 @@ Resources:
           MaxConcurrentCount: 2
       Parameters: 
         - ParameterKey: Key
-          ParameterValue: !Sub '${env}-PrivateSubnet1'
+          ParameterValue: !Sub '/Network/${env}/PrivateSubnet1'
         - ParameterKey: Description
           ParameterValue: !Sub 'Private Subnet 1 ID in ${env} VPC'
         - ParameterKey: Value
@@ -387,11 +425,11 @@ Resources:
             Accounts: !Split [ "," , !Ref privateTierAccountIds ]
           Regions:
             - !Ref 'AWS::Region'
-      StackSetName: PrivateSubnet1IdParameter
+      StackSetName: !Sub '${env}-PrivateSubnet1IdParameter'
       Tags: 
         - Key: Environment
           Value: !Ref env
-      TemplateURL: https://your-s3-bucket-domain/ssm-parameter-stackset.yaml
+      TemplateURL: !Sub https://${s3Bucket}.s3.amazonaws.com/ssm-parameter-stackset.yaml
   PrivateSubnet2Id:
     Type: AWS::CloudFormation::StackSet
     DependsOn: VPC
@@ -404,7 +442,7 @@ Resources:
           MaxConcurrentCount: 2
       Parameters: 
         - ParameterKey: Key
-          ParameterValue: !Sub '${env}-PrivateSubnet2'
+          ParameterValue: !Sub '/Network/${env}/PrivateSubnet2'
         - ParameterKey: Description
           ParameterValue: !Sub 'Private Subnet 2 ID in ${env} VPC'
         - ParameterKey: Value
@@ -419,11 +457,11 @@ Resources:
             Accounts: !Split [ "," , !Ref privateTierAccountIds ]
           Regions:
             - !Ref 'AWS::Region'
-      StackSetName: PrivateSubnet2IdParameter
+      StackSetName: !Sub '${env}-PrivateSubnet2IdParameter'
       Tags: 
         - Key: Environment
           Value: !Ref env
-      TemplateURL: https://your-s3-bucket-domain/ssm-parameter-stackset.yaml
+      TemplateURL: !Sub https://${s3Bucket}.s3.amazonaws.com/ssm-parameter-stackset.yaml
   DbSubnet1Id:
     Type: AWS::CloudFormation::StackSet
     DependsOn: VPC
@@ -436,7 +474,7 @@ Resources:
           MaxConcurrentCount: 2
       Parameters: 
         - ParameterKey: Key
-          ParameterValue: !Sub '${env}-DbSubnet1'
+          ParameterValue: !Sub '/Network/${env}/DbSubnet1'
         - ParameterKey: Description
           ParameterValue: !Sub 'DB Subnet 1 ID in ${env} VPC'
         - ParameterKey: Value
@@ -451,11 +489,11 @@ Resources:
             Accounts: !Split [ "," , !Ref dbTierAccountIds ]
           Regions:
             - !Ref 'AWS::Region'
-      StackSetName: DbSubnet1IdParameter
+      StackSetName: !Sub '${env}-DbSubnet1IdParameter'
       Tags: 
         - Key: Environment
           Value: !Ref env
-      TemplateURL: https://your-s3-bucket-domain/ssm-parameter-stackset.yaml
+      TemplateURL: !Sub https://${s3Bucket}.s3.amazonaws.com/ssm-parameter-stackset.yaml
   DbSubnet2Id:
     Type: AWS::CloudFormation::StackSet
     DependsOn: VPC
@@ -468,7 +506,7 @@ Resources:
           MaxConcurrentCount: 2
       Parameters: 
         - ParameterKey: Key
-          ParameterValue: !Sub '${env}-DbSubnet2'
+          ParameterValue: !Sub '/Network/${env}/DbSubnet2'
         - ParameterKey: Description
           ParameterValue: !Sub 'DB Subnet 2 ID in ${env} VPC'
         - ParameterKey: Value
@@ -483,11 +521,11 @@ Resources:
             Accounts: !Split [ "," , !Ref dbTierAccountIds ]
           Regions:
             - !Ref 'AWS::Region'
-      StackSetName: DbSubnet2IdParameter
+      StackSetName: !Sub '${env}-DbSubnet2IdParameter'
       Tags: 
         - Key: Environment
           Value: !Ref env
-      TemplateURL: https://your-s3-bucket-domain/ssm-parameter-stackset.yaml
+      TemplateURL: !Sub https://${s3Bucket}.s3.amazonaws.com/ssm-parameter-stackset.yaml
   OnPremPrefixListId:
     Type: AWS::CloudFormation::StackSet
     DependsOn: VPC
@@ -500,7 +538,7 @@ Resources:
           MaxConcurrentCount: 2
       Parameters: 
         - ParameterKey: Key
-          ParameterValue: !Sub '${env}-OnPrem-PrefixList'
+          ParameterValue: !Sub '/Network/${env}/OnPrem-PrefixList'
         - ParameterKey: Description
           ParameterValue: 'Prefix List ID for on-premises networks'
         - ParameterKey: Value
@@ -515,8 +553,8 @@ Resources:
             Accounts: !Split [ "," , !Ref vpcAccountIds ]
           Regions:
             - !Ref 'AWS::Region'
-      StackSetName: OnPremPrefixListIdParameter
+      StackSetName: !Sub '${env}-OnPremPrefixListIdParameter'
       Tags: 
         - Key: Environment
           Value: !Ref env
-      TemplateURL: https://your-s3-bucket-domain/ssm-parameter-stackset.yaml
+      TemplateURL: !Sub https://${s3Bucket}.s3.amazonaws.com/ssm-parameter-stackset.yaml

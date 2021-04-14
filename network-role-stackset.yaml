@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT-0
 
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Template for StacKSet to create cross account role accessible by Network VPC account'
+Description: 'Template for StackSet to create cross account role accessible by Network VPC account'
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -11,14 +11,22 @@ Metadata:
           default: Required Parameters
         Parameters:
             - networkAccountId
+            - organizationId
     ParameterLabels:
       networkAccountId:
         default: AWS Account ID for Network Services
+      organizationId:
+        default: The unique ID for your AWS Organization
 
 Parameters:
   networkAccountId:
     Type: String
     Description: Account ID of the shared network resources
+    AllowedPattern: '^\d{12}$'
+  organizationId:
+    Type: String
+    Description: Organization ID beginning with o-
+    AllowedPattern: '^o-[a-z0-9]{10,32}'
 
 Conditions:
   IsNetworkAccount: !Equals [!Ref networkAccountId, !Ref AWS::AccountId] 
@@ -27,7 +35,7 @@ Conditions:
 Resources:
 ## ToDo set to only deploy once when deploying multi region
   NetworkParameterExecutionRole:
-    Type: AWS::IAM::Role
+    Type: 'AWS::IAM::Role'
     Condition: NotNetworkAccount
     Properties:
       RoleName: NetworkParameterExecutionRole
@@ -41,14 +49,21 @@ Resources:
             Condition:
               StringLike:
                 aws:PrincipalArn: '*NetworkParameterAdminRole'
+              StringEquals:
+                aws:PrincipalOrgID: !Ref organizationId
       Policies:
         - PolicyDocument:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
                 Action:
-                  - cloudformation:*
-                  - s3:*
+                  - cloudformation:CreateStack
+                  - cloudformation:DescribeStacks
+                  - cloudformation:DeleteStack
+                  - cloudformation:UpdateStack
+                Resource: 'arn:aws:cloudformation:*:*:stack/StackSet-*'
+              - Effect: Allow
+                Action:
                   - sns:*
                 Resource: '*'
               - Effect: Allow
@@ -56,7 +71,7 @@ Resources:
                   - ssm:PutParameter
                   - ssm:DeleteParameter
                   - ssm:AddTagsToResource
-                Resource: '*'
+                Resource: 'arn:aws:ssm:*:*:parameter/Network/*'
           PolicyName: NetworkParameterExecutionPolicy
   
   # IAM Role for Lambda function that creates parameter store items across accounts
@@ -66,7 +81,7 @@ Resources:
     Properties:
       RoleName: NetworkParameterAdminRole
       AssumeRolePolicyDocument:
-        Version: 2012-10-17
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:

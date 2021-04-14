@@ -22,7 +22,7 @@ Parameters:
 
 Resources:
   NetworkParameter:
-    Type: AWS::SSM::Parameter
+    Type: 'AWS::SSM::Parameter'
     Properties: 
       DataType: text
       Description: !Ref Description

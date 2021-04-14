@@ -1,7 +1,7 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 
-AWSTemplateFormatVersion: 2010-09-09
+AWSTemplateFormatVersion: '2010-09-09'
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -32,30 +32,30 @@ Parameters:
       - Test
       - Prod
   onPremPrefixList:
-    Type: AWS::SSM::Parameter::Value<String>
+    Type: 'AWS::SSM::Parameter::Value<String>'
     Description: SSM Parameter Store key for Prefix-List
     AllowedValues:
-      - Dev-OnPrem-PrefixList
-      - Test-OnPrem-PrefixList
-      - Prod-OnPrem-PrefixList
+      - /Network/Dev/OnPrem-PrefixList
+      - /Network/Test/OnPrem-PrefixList
+      - /Network/Prod/OnPrem-PrefixList
   vpc:
-    Type: AWS::SSM::Parameter::Value<String>
+    Type: 'AWS::SSM::Parameter::Value<String>'
     Description: SSM Parameter Store key for VPC ID
     AllowedValues:
-      - Dev-Vpc
-      - Test-Vpc
-      - Prod-Vpc
+      - /Network/Dev/Vpc
+      - /Network/Test/Vpc
+      - /Network/Prod/Vpc
   subnet:
-    Type: AWS::SSM::Parameter::Value<String>
+    Type: 'AWS::SSM::Parameter::Value<String>'
     Description: SSM Parameter Store key for VPC ID
     AllowedValues:
-      - Dev-PrivateSubnet1
-      - Test-PrivateSubnet1
-      - Prod-PrivateSubnet1
+      - /Network/Dev/PrivateSubnet1
+      - /Network/Test/PrivateSubnet1
+      - /Network/Prod/PrivateSubnet1
   
 Resources:
   AppServer:
-    Type: AWS::EC2::Instance
+    Type: 'AWS::EC2::Instance'
     Properties:
       ImageId: !Ref LinuxAmi
       SubnetId: !Ref subnet
@@ -65,7 +65,7 @@ Resources:
           Value: !Sub "AppServer1-${env}"
       SecurityGroupIds:
         - !Ref AppSecurityGroup
-      IamInstanceProfile: !Ref AppInstanceProfile
+      # IamInstanceProfile: !Ref AppInstanceProfile
       BlockDeviceMappings:
         - DeviceName: /dev/xvda
           Ebs:
@@ -82,22 +82,3 @@ Resources:
         FromPort: 22
         ToPort: 22
         SourcePrefixListId: !Ref onPremPrefixList
-  AppInstanceProfile:
-    Type: 'AWS::IAM::InstanceProfile'
-    Properties:
-      Path: /
-      Roles:
-        - !Ref AppAccessRole
-  AppAccessRole:
-    Type: 'AWS::IAM::Role'
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - ec2.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      Path: /
