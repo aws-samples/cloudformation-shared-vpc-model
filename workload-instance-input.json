@@ -1,18 +1,18 @@
 [
   {
     "ParameterKey": "env",
-    "ParameterValue": "Environment for this VPC. Choose from Dev, Test, or Prod"
+    "ParameterValue": "Replace with environment for this VPC. Choose from Dev, Test, or Prod"
   },
   {
     "ParameterKey": "onPremPrefixList",
-    "ParameterValue": "SSM Parameter Store key for Prefix-List. Choose from AllowedValues in the template."
+    "ParameterValue": "Replace with SSM Parameter Store key for Prefix-List. Choose from AllowedValues in the template."
   },
   {
     "ParameterKey": "vpc",
-    "ParameterValue": "SSM Parameter Store key for VPC ID. Choose from AllowedValues in the template."
+    "ParameterValue": "Replace with SSM Parameter Store key for VPC ID. Choose from AllowedValues in the template."
   },
   {
     "ParameterKey": "subnet",
-    "ParameterValue": "SSM Parameter Store key for VPC ID. Choose from AllowedValues in the template."
+    "ParameterValue": "Replace with SSM Parameter Store key for VPC ID. Choose from AllowedValues in the template."
   }
 ]
