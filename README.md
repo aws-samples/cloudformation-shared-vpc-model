@@ -12,7 +12,7 @@
 
 ## Deployment Steps
 ### Setup the roles for cross-account access
-1. From the AWS Organizations manangement account, create an AWS CloudFormation stack set using the [network-role-stackset.yaml](../blobs/mainline/--/network-role-stackset.yaml). Deploy the StackSet using the CLI commands below. Replace the S3 bucket domain, account IDs, organization ID, region ID with values from your environment.
+1. From the AWS Organizations manangement account, create an AWS CloudFormation stack set using the [network-role-stackset.yaml](./network-role-stackset.yaml). Deploy the StackSet using the CLI commands below. Replace the S3 bucket domain, account IDs, organization ID, region ID with values from your environment.
 ```
 aws cloudformation create-stack-set --stack-set-name network-parameter-role \
 --parameters ParameterKey=networkAccountId,ParameterValue=network-account-id \
@@ -23,8 +23,8 @@ aws cloudformation create-stack-instances --stack-set-name network-parameter-rol
 ```
 
 ### Deploy a Shared VPC from the Network Account
-1.	Upload the [ssm-parameter-stackset.yaml](../blobs/mainline/--/ssm-parameter-stackset.yaml) to your S3 bucket.
-2.	Edit the [shared-vpc-input.json](../blobs/mainline/--/shared-vpc-input.json) and provide the parameter values specific to your AWS Organization.
+1.	Upload the [ssm-parameter-stackset.yaml](./ssm-parameter-stackset.yaml) to your S3 bucket.
+2.	Edit the [shared-vpc-input.json](./shared-vpc-input.json) and provide the parameter values specific to your AWS Organization.
 3.	From the Network account, create the stack using the CLI command below.
 ```
 aws cloudformation deploy --template-file shared-vpc.yaml \
@@ -33,7 +33,7 @@ aws cloudformation deploy --template-file shared-vpc.yaml \
 ```
 
 ### Deploy EC2 instance in a Member Account using the Shared Subnet
-1.	Edit the [workload-instance-input.json](../blobs/mainline/--/workload-instance-input.yaml) and provide the parameter values specific to your workload account.
+1.	Edit the [workload-instance-input.json](./workload-instance-input.yaml) and provide the parameter values specific to your workload account.
 2.	From the Workload account, create the stack using the CLI command below.
 ```
 aws cloudformation deploy --template-file workload-instance.yaml \
