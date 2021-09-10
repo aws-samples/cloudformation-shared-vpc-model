@@ -1,0 +1,34 @@
+[
+  {
+    "ParameterKey": "vpcAccountIds",
+    "ParameterValue": "Replace with string of 1 or more comma separated AWS account id ex. '0123456789012,1123456789012'"
+  },
+  {
+    "ParameterKey": "publicTierAccountIds",
+    "ParameterValue": "Replace with string of 1 or more comma separated AWS account id ex. '0123456789012,1123456789012'"
+  },
+  {
+    "ParameterKey": "privateTierAccountIds",
+    "ParameterValue": "Replace with string of 1 or more comma separated AWS account id ex. '0123456789012,1123456789012'"
+  },
+  {
+    "ParameterKey": "dbTierAccountIds",
+    "ParameterValue": "Replace with string of 1 or more comma separated AWS account id ex. '0123456789012,1123456789012'"
+  },
+  {
+    "ParameterKey": "vpcCIDR",
+    "ParameterValue": "Replace with sring in CIDR format ex. '10.100.0.0/16'"
+  },
+  {
+    "ParameterKey": "s3Bucket",
+    "ParameterValue": "Replace with name of your S3 bucket holding the ssm-parameter-stackset template"
+  },
+  {
+    "ParameterKey": "orgArn",
+    "ParameterValue": "Replace with the ARN of your AWS Organization"
+  },
+  {
+    "ParameterKey": "env",
+    "ParameterValue": "Replace with the environment for this VPC.  Choose from Dev, Test, or Prod"
+  }
+]
