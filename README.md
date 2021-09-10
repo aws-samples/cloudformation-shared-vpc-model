@@ -33,7 +33,7 @@ aws cloudformation deploy --template-file shared-vpc.yaml \
 ```
 
 ### Deploy EC2 instance in a Member Account using the Shared Subnet
-1.	Edit the [workload-instance-input.json](./workload-instance-input.yaml) and provide the parameter values specific to your workload account.
+1.	Edit the [workload-instance-input.json](./workload-instance-input.json) and provide the parameter values specific to your workload account.
 2.	From the Workload account, create the stack using the CLI command below.
 ```
 aws cloudformation deploy --template-file workload-instance.yaml \
